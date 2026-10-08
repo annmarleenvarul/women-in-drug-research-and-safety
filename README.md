@@ -22,6 +22,7 @@ Both sources are record-level (not pre-aggregated). The two are linked through `
 ```
 sql/
   pseudo_queries.sql     SQL answering the five business questions
+  schemas.sql            SQL for creating the star schema tables
 scripts/
   download_fda.py        pulls recent FAERS reports, flattened to the fact grain
 sample_data/             small samples produced by the two scripts
