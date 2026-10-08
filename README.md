@@ -31,54 +31,7 @@ sample_data/             small samples produced by the two scripts
 ## Star schema
 
 2 fact tables, 6 dimensions and 1 bridge table.
-
-```mermaid
-erDiagram
-    dim_date            ||--o{ fact_adverse_event     : "received on"
-    dim_drug            ||--o{ fact_adverse_event     : "suspect drug"
-    dim_reaction        ||--o{ fact_adverse_event     : "reaction"
-    dim_patient_profile ||--o{ fact_adverse_event     : "patient"
-    dim_trial           ||--o{ fact_trial_drug        : "trial version"
-    dim_drug            ||--o{ fact_trial_drug        : "drug tested"
-    dim_date            ||--o{ fact_trial_drug        : "started on"
-    dim_condition       ||--o{ bridge_trial_condition : "condition"
-    dim_trial           }o--o{ bridge_trial_condition : "nct_id"
-
-    fact_adverse_event {
-        bigint ae_key PK
-        varchar report_id
-        int received_date_key FK
-        int drug_key FK
-        int reaction_key FK
-        int patient_profile_key FK
-        boolean is_serious
-        boolean is_death
-        boolean is_hospitalisation
-        boolean is_life_threatening
-    }
-    fact_trial_drug {
-        bigint trial_drug_key PK
-        int trial_key FK
-        int drug_key FK
-        int start_date_key FK
-        int enrollment
-        boolean is_enrollment_actual
-    }
-    dim_trial {
-        int trial_key PK
-        char nct_id
-        varchar overall_status
-        varchar phase
-        varchar eligible_sex
-        date valid_from
-        date valid_to
-        boolean is_current
-    }
-    bridge_trial_condition {
-        char nct_id PK
-        int condition_key PK, FK
-    }
-```
+![Star schema](images/star_schema.png)
 
 | Table | Grain | SCD type |
 | --- | --- | --- |
