@@ -21,12 +21,40 @@ Both sources are record-level (not pre-aggregated). The two are linked through `
 
 ```
 sql/
+  schema.sql             SQL for the gold-layer star schema tables
+  medallion_schema.sql   DuckDB medallion schemas for bronze/silver/gold layers
   pseudo_queries.sql     SQL answering the five business questions
-  schemas.sql            SQL for creating the star schema tables
 scripts/
   download_fda.py        pulls recent FAERS reports, flattened to the fact grain
+  load_medallion_storage.py  creates the DuckDB warehouse and loads the bronze layer
 sample_data/             small samples produced by the two scripts
 ```
+
+## Data storage choice: DuckDB
+
+For Project 2, the analytical layer uses DuckDB as the local warehouse. DuckDB is a good fit for this project because the workload is analytical, mostly read-heavy, and built around a dimensional model with aggregations over a moderate dataset. It runs locally without a separate database service, keeps the project easy to reproduce in a student environment, and is fully compatible with dbt for the star-schema transformations.
+
+Compared with PostgreSQL, DuckDB is optimized for analytical queries and columnar execution, which is helpful for filtering, grouping, and joining the fact and dimension tables. For this project, the query patterns are mostly scans over a limited fact table and dimension lookups rather than high-concurrency OLTP workloads, so the performance characteristics of DuckDB align well. It also reduces deployment friction: the database is a single local file, and the medallion architecture can be represented as schemas (`bronze`, `silver`, `gold`) within the same warehouse.
+
+For workloads that require a service-oriented database or a multi-user deployment, PostgreSQL would still be preferable. The main trade-off is that DuckDB is less suitable for heavy concurrent writes or long-lived shared database services. In this project, the analytical pattern and local execution model are a better match.
+
+## Medallion architecture
+
+The storage layer is split into separate schemas so the ingestion, cleaning, and analytics stages remain distinct:
+
+- Bronze: raw source data ingested from the sample CSVs (`bronze.fda_reports_raw`, `bronze.ctg_studies_raw`)
+- Silver: cleaned/standardised intermediate views or tables (for example, a canonical view for patient profile and reaction values)
+- Gold: star schema tables consistent with the Project 1 dimensional model (`gold.dim_*`, `gold.fact_*`)
+
+The `scripts/load_medallion_storage.py` script creates the warehouse, builds the schemas, loads the raw CSVs into the bronze layer, and materialises the dimension and fact tables for the analytical layer. This keeps the pipeline idempotent: rerunning the script replaces the warehouse tables rather than creating duplicate records.
+
+To build the local warehouse:
+
+```bash
+python3 scripts/load_medallion_storage.py
+```
+
+The generated database is stored in `warehouse/women_drug_safety.duckdb` and is excluded from git via `.gitignore`.
 
 ## Star schema
 
