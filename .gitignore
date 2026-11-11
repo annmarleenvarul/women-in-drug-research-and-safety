@@ -1,7 +1,12 @@
-warehouse/
+.env
+.DS_Store
 __pycache__/
 *.pyc
 .env
 .venv/
 logs/
 __pycache__/
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/.user.yml

@@ -1,0 +1,155 @@
+version: 2
+
+models:
+  # ---------------- FAERS ----------------
+  - name: base_faers__latest_reports
+    description: >
+      Ephemeral helper (not stored). Deduplicates bronze FAERS rows to the latest version of each
+      report, ranked by safetyreportversion and then ingestion time. Keeps the JSON payload.
+
+  - name: stg_faers__reports
+    description: One row per FAERS safety report (latest version) with decoded patient and seriousness fields.
+    columns:
+      - name: report_id
+        description: FAERS safety report ID.
+        data_tests: [unique, not_null]
+      - name: received_date
+        description: Date the FDA received the report (decoded from YYYYMMDD).
+        data_tests: [not_null]
+      - name: sex
+        description: Patient sex decoded from patientsex (1 = Male, 2 = Female, otherwise Unknown).
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['Female', 'Male', 'Unknown']
+      - name: age_years
+        description: Patient age at onset in years, converted from the FAERS age-unit code. NULL if missing or implausible (outside 0-120).
+      - name: age_band
+        description: Age band used by dim_patient_profile.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['0-17', '18-44', '45-64', '65+', 'Unknown']
+      - name: is_serious
+        description: Report was flagged serious.
+      - name: is_death
+        description: Outcome included death.
+      - name: is_hospitalisation
+        description: Outcome included (or prolonged) hospitalisation.
+      - name: is_life_threatening
+        description: Outcome was life-threatening.
+      - name: ingested_at
+        description: Bronze ingestion timestamp; drives the incremental load of fact_adverse_event.
+
+  - name: stg_faers__suspect_drugs
+    description: One row per suspect drug (drugcharacterization = 1) per FAERS report.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [report_id, ingredient_name]
+    columns:
+      - name: report_id
+        description: FAERS safety report ID.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_faers__reports')
+                field: report_id
+      - name: ingredient_name
+        description: Normalised ingredient name (see macro normalize_drug_name).
+        data_tests: [not_null]
+      - name: rxcui
+        description: First RxCUI from the openFDA harmonisation block (product-level code, may be NULL).
+      - name: drug_class
+        description: First established pharmacologic class (openfda.pharm_class_epc), may be NULL.
+
+  - name: stg_faers__reactions
+    description: One row per reaction (MedDRA preferred term) per FAERS report.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [report_id, meddra_pt]
+    columns:
+      - name: report_id
+        description: FAERS safety report ID.
+        data_tests: [not_null]
+      - name: meddra_pt
+        description: MedDRA preferred term, capitalisation standardised.
+        data_tests: [not_null]
+
+  # ---------------- ClinicalTrials.gov ----------------
+  - name: base_ct__latest_studies
+    description: >
+      Ephemeral helper (not stored). Keeps the most recently ingested copy of each study's
+      protocolSection JSON.
+
+  - name: stg_ct__studies
+    description: One row per clinical trial (latest ingested state), flattened from the API v2 JSON. Source of the dim_trial snapshot.
+    columns:
+      - name: nct_id
+        description: ClinicalTrials.gov identifier (NCT + 8 digits).
+        data_tests: [unique, not_null]
+      - name: title
+        description: Brief title.
+      - name: overall_status
+        description: Recruitment status, e.g. RECRUITING, COMPLETED, TERMINATED.
+      - name: phase
+        description: Phase(s) joined with '/', e.g. PHASE2/PHASE3; 'NA' if not applicable.
+        data_tests: [not_null]
+      - name: eligible_sex
+        description: Sexes eligible to enrol.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['ALL', 'FEMALE', 'MALE']
+      - name: min_age_years
+        description: Minimum eligible age in years (converted from e.g. '6 Months').
+      - name: max_age_years
+        description: Maximum eligible age in years.
+      - name: start_date
+        description: Trial start date; partial dates ('YYYY-MM') are set to the 1st of the month.
+      - name: enrollment
+        description: Number of participants (actual or anticipated).
+      - name: is_enrollment_actual
+        description: TRUE if enrollment is the actual count, FALSE if anticipated.
+      - name: last_updated_at
+        description: Last update posted on ClinicalTrials.gov; the snapshot uses it to detect new versions.
+        data_tests: [not_null]
+      - name: ingested_at
+        description: Bronze ingestion timestamp.
+
+  - name: stg_ct__study_conditions
+    description: One row per condition per trial.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [nct_id, condition_name_normalized]
+    columns:
+      - name: nct_id
+        description: ClinicalTrials.gov identifier.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_ct__studies')
+                field: nct_id
+      - name: condition_name
+        description: Condition as entered by the sponsor (whitespace cleaned).
+      - name: condition_name_normalized
+        description: Lower-cased condition name; natural key of dim_condition.
+
+  - name: stg_ct__study_drugs
+    description: One row per drug or biological tested in a trial, placebos excluded.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [nct_id, ingredient_name]
+    columns:
+      - name: nct_id
+        description: ClinicalTrials.gov identifier.
+        data_tests: [not_null]
+      - name: ingredient_name
+        description: Normalised intervention name, comparable with FAERS ingredient names.
+        data_tests: [not_null]

@@ -1,0 +1,243 @@
+version: 2
+
+models:
+  # ============ FACTS ============
+  - name: fact_adverse_event
+    description: >
+      **Grain: one suspect drug x one reported reaction within one FAERS adverse event report.**
+      Incremental model (delete+insert by report_id). Report-level measures (is_serious etc.)
+      repeat on every row of a report, so count DISTINCT report_id when measuring reports.
+    columns:
+      - name: ae_key
+        description: Surrogate key, hash of (report_id, ingredient_name, meddra_pt).
+        data_tests: [unique, not_null]
+      - name: report_id
+        description: FAERS safety report ID (degenerate dimension).
+        data_tests: [not_null]
+      - name: received_date_key
+        description: Date the FDA received the report (YYYYMMDD).
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: drug_key
+        description: Suspect drug.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_drug')
+                field: drug_key
+      - name: reaction_key
+        description: Reported reaction.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_reaction')
+                field: reaction_key
+      - name: patient_profile_key
+        description: Patient sex and age band.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_patient_profile')
+                field: patient_profile_key
+      - name: is_serious
+        description: Report flagged serious.
+      - name: is_death
+        description: Outcome included death.
+      - name: is_hospitalisation
+        description: Outcome included hospitalisation.
+      - name: is_life_threatening
+        description: Outcome was life-threatening.
+      - name: ingested_at
+        description: Bronze ingestion time of the report version loaded (incremental watermark).
+
+  - name: fact_trial_drug
+    description: >
+      **Grain: one drug x one clinical trial.** trial_key references the version of the trial
+      that was current at load time.
+    columns:
+      - name: trial_drug_key
+        description: Surrogate key, hash of (nct_id, ingredient_name).
+        data_tests: [unique, not_null]
+      - name: trial_key
+        description: Trial version (dim_trial, SCD Type 2).
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_trial')
+                field: trial_key
+      - name: drug_key
+        description: Drug tested in the trial.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_drug')
+                field: drug_key
+      - name: start_date_key
+        description: Trial start date (YYYYMMDD); NULL if the registry has no start date.
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: enrollment
+        description: Participant count.
+      - name: is_enrollment_actual
+        description: TRUE = actual, FALSE = anticipated.
+
+  # ============ DIMENSIONS ============
+  - name: dim_date
+    description: Calendar dimension, one row per day (static).
+    columns:
+      - name: date_key
+        description: Date as integer YYYYMMDD.
+        data_tests: [unique, not_null]
+      - name: full_date
+        description: Calendar date.
+        data_tests: [unique, not_null]
+      - name: year
+        description: Calendar year.
+      - name: quarter
+        description: Calendar quarter (1-4).
+      - name: month
+        description: Calendar month (1-12).
+      - name: day
+        description: Day of month.
+
+  - name: dim_drug
+    description: >
+      One row per drug ingredient (SCD Type 1, rebuilt each run). Natural key is the normalised
+      ingredient name because ClinicalTrials.gov interventions carry no RxCUI.
+    columns:
+      - name: drug_key
+        description: Surrogate key, hash of ingredient_name.
+        data_tests: [unique, not_null]
+      - name: rxcui
+        description: Most frequent openFDA RxCUI for the ingredient (NULL for trial-only drugs).
+      - name: ingredient_name
+        description: Normalised generic / ingredient name.
+        data_tests: [unique, not_null]
+      - name: drug_class
+        description: Most frequent established pharmacologic class from openFDA.
+      - name: appears_in_faers
+        description: Drug occurs as a suspect drug in at least one FAERS report.
+      - name: appears_in_trials
+        description: Drug occurs as an intervention in at least one trial. Both flags TRUE = matched across sources.
+
+  - name: dim_reaction
+    description: One row per MedDRA preferred term (static).
+    columns:
+      - name: reaction_key
+        description: Surrogate key, hash of meddra_pt.
+        data_tests: [unique, not_null]
+      - name: meddra_pt
+        description: MedDRA preferred term.
+        data_tests: [unique, not_null]
+
+  - name: dim_patient_profile
+    description: Every sex x age-band combination (static, 15 rows).
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [sex, age_band]
+    columns:
+      - name: patient_profile_key
+        description: Surrogate key, hash of (sex, age_band).
+        data_tests: [unique, not_null]
+      - name: sex
+        description: Female, Male or Unknown.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['Female', 'Male', 'Unknown']
+      - name: age_band
+        description: 0-17, 18-44, 45-64, 65+ or Unknown.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['0-17', '18-44', '45-64', '65+', 'Unknown']
+      - name: age_band_order
+        description: Sort order for age bands in reports.
+
+  - name: dim_condition
+    description: One row per condition studied (SCD Type 1); case variants merged.
+    columns:
+      - name: condition_key
+        description: Surrogate key, hash of the lower-cased condition name.
+        data_tests: [unique, not_null]
+      - name: condition_name
+        description: Most common spelling of the condition as entered by sponsors.
+        data_tests: [not_null]
+
+  - name: dim_trial
+    description: >
+      One row per trial version (SCD Type 2), built from snapshot snap_ct__studies.
+      A new version is created whenever ClinicalTrials.gov posts an update.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [nct_id, valid_from]
+    columns:
+      - name: trial_key
+        description: Surrogate key of the trial version (dbt_scd_id).
+        data_tests: [unique, not_null]
+      - name: nct_id
+        description: ClinicalTrials.gov identifier.
+        data_tests: [not_null]
+      - name: title
+        description: Brief title.
+      - name: overall_status
+        description: Recruitment status in this version.
+      - name: phase
+        description: Phase(s), e.g. PHASE3 or PHASE2/PHASE3; NA if not applicable.
+      - name: eligible_sex
+        description: ALL, FEMALE or MALE.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['ALL', 'FEMALE', 'MALE']
+      - name: min_age_years
+        description: Minimum eligible age in years.
+      - name: max_age_years
+        description: Maximum eligible age in years.
+      - name: valid_from
+        description: Version start (date of the registry update).
+        data_tests: [not_null]
+      - name: valid_to
+        description: Version end; 9999-12-31 for the current version.
+        data_tests: [not_null]
+      - name: is_current
+        description: TRUE for the latest version of the trial.
+        data_tests: [not_null]
+
+  - name: bridge_trial_condition
+    description: Trial-condition mapping (many-to-many). Join on nct_id to the current row of dim_trial.
+    data_tests:
+      - unique_combination:
+          arguments:
+            columns: [nct_id, condition_key]
+    columns:
+      - name: nct_id
+        description: ClinicalTrials.gov identifier.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_trial')
+                field: nct_id
+      - name: condition_key
+        description: Condition studied.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_condition')
+                field: condition_key

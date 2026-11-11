@@ -1,0 +1,14 @@
+version: 2
+
+# SCD Type 2 history for trials (Project 1: dim_trial is Type 2).
+# Each time ClinicalTrials.gov reports a newer lastUpdatePostDate for a trial,
+# dbt closes the old row (dbt_valid_to) and inserts a new one.
+snapshots:
+  - name: snap_ct__studies
+    relation: ref('stg_ct__studies')
+    description: Version history of every trial's attributes (status, phase, eligibility).
+    config:
+      schema: silver
+      unique_key: nct_id
+      strategy: timestamp
+      updated_at: last_updated_at

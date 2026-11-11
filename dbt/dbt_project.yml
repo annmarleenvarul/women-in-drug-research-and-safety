@@ -1,0 +1,74 @@
+name: women_drug_safety
+version: "1.0.0"
+config-version: 2
+profile: women_drug_safety
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+# Fallback bounds for dim_date; the spine is widened automatically if the data
+# contains dates outside this range.
+vars:
+  date_spine_start: "2000-01-01"
+  date_spine_end: "2035-12-31"
+  # Minimum group sizes for the analytical queries (avoid ratios over tiny counts)
+  min_trials_per_condition: 5
+  min_reports_per_drug: 20
+
+models:
+  women_drug_safety:
+    silver:
+      +schema: silver
+      +materialized: table
+    gold:
+      +schema: gold
+      +materialized: table
+
+      # Physical design (project section 2.2): indexes on the surrogate keys so that
+      # star-schema joins use index scans, and on the attributes the analytical
+      # queries filter or group by. dbt recreates them with the table on every run.
+      dim_date:
+        +indexes:
+          - {columns: ['date_key'], unique: true}
+          - {columns: ['full_date'], unique: true}
+          - {columns: ['year', 'quarter']}
+      dim_drug:
+        +indexes:
+          - {columns: ['drug_key'], unique: true}
+          - {columns: ['ingredient_name'], unique: true}
+      dim_reaction:
+        +indexes:
+          - {columns: ['reaction_key'], unique: true}
+      dim_patient_profile:
+        +indexes:
+          - {columns: ['patient_profile_key'], unique: true}
+          - {columns: ['sex', 'age_band']}
+      dim_condition:
+        +indexes:
+          - {columns: ['condition_key'], unique: true}
+      dim_trial:
+        +indexes:
+          - {columns: ['trial_key'], unique: true}
+          - {columns: ['nct_id', 'is_current']}
+      bridge_trial_condition:
+        +indexes:
+          - {columns: ['nct_id', 'condition_key'], unique: true}
+          - {columns: ['condition_key']}
+      fact_adverse_event:
+        +indexes:
+          - {columns: ['ae_key'], unique: true}
+          - {columns: ['report_id']}        # the delete+insert of the incremental load
+          - {columns: ['ingested_at']}      # the incremental watermark read
+          - {columns: ['drug_key']}
+          - {columns: ['reaction_key']}
+          - {columns: ['patient_profile_key']}
+          - {columns: ['received_date_key']}
+      fact_trial_drug:
+        +indexes:
+          - {columns: ['trial_drug_key'], unique: true}
+          - {columns: ['trial_key']}
+          - {columns: ['drug_key']}
+          - {columns: ['start_date_key']}

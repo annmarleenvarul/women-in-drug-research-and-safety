@@ -15,46 +15,57 @@ Compare how women are represented in clinical research with how they appear in p
 | [openFDA adverse events (FAERS)](https://open.fda.gov/apis/drug/event/) | Individual adverse event reports: suspect drugs, reactions (MedDRA), patient sex and age, seriousness | REST API, optional free key | Quarterly |
 | [ClinicalTrials.gov API v2](https://clinicaltrials.gov/data-api/api) | Registered trials: status, phase, eligible sex and ages, conditions, interventions, enrollment | REST API, no key | Daily |
 
-Both sources are record-level (not pre-aggregated). The two are linked through `dim_drug`: drug names from both sides are mapped to an RxNorm ingredient code (RxCUI).
+Both sources are record-level (not pre-aggregated). The Project 1 model proposed linking through
+RxNorm ingredient codes (RxCUI). The Project 2 dbt models instead normalize ingredient names,
+because ClinicalTrials.gov does not provide RxCUIs; this implementation change is documented in
+[dbt/README.md](./dbt/README.md).
 
 ## Repository contents
 
 ```
 sql/
-  schema.sql             SQL for the gold-layer star schema tables
-  medallion_schema.sql   DuckDB medallion schemas for bronze/silver/gold layers
   pseudo_queries.sql     SQL answering the five business questions
+  schema.sql             SQL for creating the star schema tables
 scripts/
   download_fda.py        pulls recent FAERS reports, flattened to the fact grain
-  load_medallion_storage.py  creates the DuckDB warehouse and loads the bronze layer
+  download_ctgov.py      pulls ClinicalTrials.gov study data
 sample_data/             small samples produced by the two scripts
+warehouse/               PostgreSQL 16 medallion storage and bronze DDL
+ingestion/                idempotent bronze loader and data-quality checks
+dbt/                      silver/gold models, tests, snapshots, and analyses
+docs/                     storage and database-engine documentation
 ```
 
-## Data storage choice: DuckDB
+## Project 2: storage and transformations
 
-For Project 2, the analytical layer uses DuckDB as the local warehouse. DuckDB is a good fit for this project because the workload is analytical, mostly read-heavy, and built around a dimensional model with aggregations over a moderate dataset. It runs locally without a separate database service, keeps the project easy to reproduce in a student environment, and is fully compatible with dbt for the star-schema transformations.
+The analytical warehouse uses PostgreSQL 16, with separate `bronze`, `silver`, and `gold`
+schemas. PostgreSQL's JSONB support preserves the nested API records in bronze, and its
+transactional row-level updates suit idempotent daily loads and trial-history snapshots. It also
+has mature dbt support. DuckDB can be faster for large, read-heavy scans, but this project has
+moderate data volumes and needs transactional updates and a shared service for ingestion and dbt;
+PostgreSQL is the better fit for those requirements.
 
-Compared with PostgreSQL, DuckDB is optimized for analytical queries and columnar execution, which is helpful for filtering, grouping, and joining the fact and dimension tables. For this project, the query patterns are mostly scans over a limited fact table and dimension lookups rather than high-concurrency OLTP workloads, so the performance characteristics of DuckDB align well. It also reduces deployment friction: the database is a single local file, and the medallion architecture can be represented as schemas (`bronze`, `silver`, `gold`) within the same warehouse.
-
-For workloads that require a service-oriented database or a multi-user deployment, PostgreSQL would still be preferable. The main trade-off is that DuckDB is less suitable for heavy concurrent writes or long-lived shared database services. In this project, the analytical pattern and local execution model are a better match.
-
-## Medallion architecture
-
-The storage layer is split into separate schemas so the ingestion, cleaning, and analytics stages remain distinct:
-
-- Bronze: raw source data ingested from the sample CSVs (`bronze.fda_reports_raw`, `bronze.ctg_studies_raw`)
-- Silver: cleaned/standardised intermediate views or tables (for example, a canonical view for patient profile and reaction values)
-- Gold: star schema tables consistent with the Project 1 dimensional model (`gold.dim_*`, `gold.fact_*`)
-
-The `scripts/load_medallion_storage.py` script creates the warehouse, builds the schemas, loads the raw CSVs into the bronze layer, and materialises the dimension and fact tables for the analytical layer. This keeps the pipeline idempotent: rerunning the script replaces the warehouse tables rather than creating duplicate records.
-
-To build the local warehouse:
+To start the warehouse and load optional development data:
 
 ```bash
-python3 scripts/load_medallion_storage.py
+cp .env.example .env
+# Edit .env and replace the example passwords.
+make -f warehouse/Makefile up
+make -f warehouse/Makefile sample
+
+cd dbt
+python3 -m pip install -r requirements.txt
+set -a && . ../.env && set +a
+export WAREHOUSE_HOST=localhost DBT_PROFILES_DIR=.
+dbt build
 ```
 
-The generated database is stored in `warehouse/women_drug_safety.duckdb` and is excluded from git via `.gitignore`.
+The dbt project is under `dbt/`; setup, model layers, and transformation commands are documented
+in [dbt/README.md](./dbt/README.md). See [docs/storage_layer.md](./docs/storage_layer.md) for the
+bronze contract and [docs/database_engine_choice.md](./docs/database_engine_choice.md) for the
+storage-engine rationale. The `ingestion/` package supplies the transaction-safe bronze loader
+and quality checks for Airflow tasks. The supplied files do not include Airflow DAG definitions;
+the DAGs still need to call these helpers and run dbt.
 
 ## Star schema
 
