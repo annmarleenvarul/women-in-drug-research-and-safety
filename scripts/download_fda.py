@@ -1,33 +1,51 @@
-import os
+import argparse
 import json
-import time
+import os
+from pathlib import Path
+
 import requests
+from dotenv import load_dotenv
 
-api_key = os.getenv("OPENFDA_API_KEY")
 
-if not api_key:
-    raise ValueError("OPENFDA_API_KEY is not set")
+PROJECT_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(PROJECT_DIR / ".env")
 
-url = "https://api.fda.gov/drug/event.json"
-reports = []
 
-for skip in range(0, 10000, 1000):
-    params = {
-        "api_key": api_key,
-        "limit": 1000,
-        "skip": skip
-    }
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit", type=int, default=100)
+    args = parser.parse_args()
 
-    response = requests.get(url, params=params)
+    if not 1 <= args.limit <= 1000:
+        raise ValueError("Limit peab olema vahemikus 1–1000.")
+
+    params = {"limit": args.limit}
+
+    api_key = os.getenv("OPENFDA_API_KEY")
+    if api_key:
+        params["api_key"] = api_key
+
+    response = requests.get(
+        "https://api.fda.gov/drug/event.json",
+        params=params,
+        timeout=60,
+    )
     response.raise_for_status()
 
-    data = response.json()
-    reports.extend(data["results"])
+    reports = response.json()["results"]
 
-    print(f"Downloaded {len(reports)} reports")
-    time.sleep(0.5)
+    output_dir = PROJECT_DIR / "sample_data"
+    output_dir.mkdir(exist_ok=True)
 
-with open("fda_reports_raw.json", "w", encoding="utf-8") as file:
-    json.dump(reports, file, ensure_ascii=False)
+    with open(
+        output_dir / "fda_reports_raw.json",
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(reports, file, ensure_ascii=False, indent=2)
 
-print("Done")
+    print(f"Salvestati {len(reports)} FAERS teadet.")
+
+
+if __name__ == "__main__":
+    main()
