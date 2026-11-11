@@ -1,0 +1,41 @@
+# Warehouse only. The Airflow services live in the ingestion team's compose file;
+# both join the same `project_net` network, so Airflow reaches this database at
+# host `postgres`. Run from the repository root:
+#   docker compose -f warehouse/docker-compose.yml --env-file .env up -d
+name: women-drug-safety
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: wds_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Created on first start; the analytical database, separate from Airflow's metadata DB.
+      POSTGRES_DB: ${WAREHOUSE_DB}
+      # Passed through to the init script below
+      WAREHOUSE_USER: ${WAREHOUSE_USER}
+      WAREHOUSE_PASSWORD: ${WAREHOUSE_PASSWORD}
+    ports:
+      # Exposed so you can connect from your laptop (psql, DBeaver, dbt run locally)
+      - "${WAREHOUSE_PORT:-5432}:5432"
+    volumes:
+      - wds_pgdata:/var/lib/postgresql/data
+      # Scripts in this folder run in alphabetical order the first time the volume is empty
+      - ./init:/docker-entrypoint-initdb.d:ro
+      # Mounted outside initdb.d (a nested mount would be shadowed); 00_init.sh applies these
+      - ./ddl:/ddl:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${WAREHOUSE_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [project_net]
+
+volumes:
+  wds_pgdata:
+
+networks:
+  project_net:
+    name: project_net
