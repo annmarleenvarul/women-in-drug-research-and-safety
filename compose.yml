@@ -1,18 +1,29 @@
 name: women-drug-project
 
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.8.1
+  build:
+    context: .
+    dockerfile: Dockerfile.airflow
+  image: women-drug-airflow:local
   user: "50000:0"
   environment:
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
     AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-db:5432/${AIRFLOW_DB_NAME}
     AIRFLOW_CONN_WOMEN_DB: postgres://${RESEARCH_DB_USER}:${RESEARCH_DB_PASSWORD}@research-db:5432/${RESEARCH_DB_NAME}
+    DBT_PROFILES_DIR: /opt/airflow/dbt
+    RESEARCH_DB_HOST: research-db
+    RESEARCH_DB_PORT: "5432"
     OPENFDA_API_KEY: ${OPENFDA_API_KEY}
+    RESEARCH_DB_USER: ${RESEARCH_DB_USER}
+    RESEARCH_DB_PASSWORD: ${RESEARCH_DB_PASSWORD}
+    RESEARCH_DB_NAME: ${RESEARCH_DB_NAME}
   volumes:
     - ./dags:/opt/airflow/dags
     - ./logs:/opt/airflow/logs
-    - ./sample_data:/opt/airflow/data
+    - ./dbt:/opt/airflow/dbt:ro
+    - dbt_target:/opt/airflow/dbt-target
+    - dbt_logs:/opt/airflow/dbt-logs
 
 services:
   research-db:
@@ -71,8 +82,8 @@ services:
       - -c
       - |
         set -e
-        mkdir -p /opt/airflow/logs /opt/airflow/dags
-        chown -R 50000:0 /opt/airflow/logs /opt/airflow/dags
+        mkdir -p /opt/airflow/logs /opt/airflow/dags /opt/airflow/dbt-target /opt/airflow/dbt-logs
+        chown -R 50000:0 /opt/airflow/logs /opt/airflow/dags /opt/airflow/dbt-target /opt/airflow/dbt-logs
         exec runuser -u airflow -- bash -ec '
           airflow db migrate
           airflow users create \
@@ -112,3 +123,5 @@ volumes:
   research_data:
   pgadmin_data:
   airflow_data:
+  dbt_target:
+  dbt_logs:

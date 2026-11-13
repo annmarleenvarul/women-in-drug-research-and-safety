@@ -1,43 +1,41 @@
 version: 2
 
-# Bronze layer = the CONTRACT with the Airflow ingestion tasks.
-# Airflow writes one row per API record, keeping the JSON exactly as received.
-# Idempotency on the bronze side: the DAG deletes rows for its load_date before inserting.
+# Authoritative DDL: sql/create_raw_tables.sql; ingestion: dags/ingest_sources.py.
+# ID/version conflicts are ignored; loaded_at is the original insertion time.
 sources:
-  - name: bronze
-    schema: bronze
-    description: Raw API responses loaded by Airflow, stored unchanged as JSONB.
+  - name: raw
+    schema: raw
+    description: Unchanged API JSON loaded into research-db by Anett's ingestion DAG.
     tables:
       - name: faers_reports
-        description: >
-          One row per openFDA FAERS safety report per load. `payload` is one element of the
-          openFDA /drug/event.json `results` array.
+        data_tests:
+          - unique_combination:
+              arguments:
+                columns: [report_id, report_version]
         columns:
-          - name: safetyreportid
-            description: FAERS safety report ID, extracted from the payload by the ingestion task.
+          - name: report_id
+            data_tests: [not_null]
+          - name: report_version
             data_tests: [not_null]
           - name: payload
-            description: Full report JSON as returned by the API.
             data_tests: [not_null]
-          - name: load_date
-            description: Airflow logical date of the run that loaded the row (the API date window).
-          - name: ingested_at
-            description: Timestamp when the row was inserted.
+          - name: batch_id
             data_tests: [not_null]
-
-      - name: ct_studies
-        description: >
-          One row per ClinicalTrials.gov study per load. `payload` is one element of the
-          API v2 /studies `studies` array.
+          - name: loaded_at
+            data_tests: [not_null]
+      - name: ctgov_studies
+        data_tests:
+          - unique_combination:
+              arguments:
+                columns: [nct_id, source_updated_date]
         columns:
           - name: nct_id
-            description: ClinicalTrials.gov identifier, extracted from the payload by the ingestion task.
+            data_tests: [not_null]
+          - name: source_updated_date
             data_tests: [not_null]
           - name: payload
-            description: Full study JSON as returned by the API.
             data_tests: [not_null]
-          - name: load_date
-            description: Airflow logical date of the run that loaded the row.
-          - name: ingested_at
-            description: Timestamp when the row was inserted.
+          - name: batch_id
+            data_tests: [not_null]
+          - name: loaded_at
             data_tests: [not_null]

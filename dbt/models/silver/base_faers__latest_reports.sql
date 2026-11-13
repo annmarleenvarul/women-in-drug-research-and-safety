@@ -1,19 +1,20 @@
 {{ config(materialized='ephemeral') }}
 
 -- Keep only the latest version of each FAERS report.
--- A report can arrive more than once (follow-up versions or a re-run of the same load date).
+-- A report can arrive more than once (follow-up versions; identical ID/version reruns are ignored in Raw).
 with ranked as (
     select
         payload,
-        ingested_at,
+        loaded_at as ingested_at,
         row_number() over (
-            partition by safetyreportid
+            partition by report_id
             order by
-                case when payload ->> 'safetyreportversion' ~ '^\d+$'
-                     then (payload ->> 'safetyreportversion')::int end desc nulls last,
-                ingested_at desc
+                case when report_version ~ '^\d+$'
+                     then (report_version)::numeric end desc nulls last,
+                loaded_at desc,
+                report_version desc
         ) as version_rank
-    from {{ source('bronze', 'faers_reports') }}
+    from {{ source('raw', 'faers_reports') }}
 )
 
 select payload, ingested_at

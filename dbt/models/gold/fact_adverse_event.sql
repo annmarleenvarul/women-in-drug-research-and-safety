@@ -1,25 +1,11 @@
-{{
-    config(
-        materialized='incremental',
-        unique_key='report_id',
-        incremental_strategy='delete+insert',
-        on_schema_change='fail'
-    )
-}}
+{{ config(materialized='table') }}
 
--- Grain: one suspect drug x one reported reaction within one FAERS adverse event report.
---
--- Incremental load: only reports ingested since the last run are processed. The unique_key is
--- report_id (not ae_key) on purpose: delete+insert first removes ALL existing rows of a re-sent
--- report and then inserts its latest version, so a follow-up version that drops a drug or
--- reaction does not leave stale rows behind. Re-running the same load is therefore idempotent.
-
+-- Grain: one suspect drug x reaction x latest FAERS report.
+-- Rebuild from the validated Silver state, like the other Gold tables. This also
+-- removes obsolete rows when a correction drops ALL suspect drugs or reactions.
 with reports as (
     select *
     from {{ ref('stg_faers__reports') }}
-    {% if is_incremental() %}
-    where ingested_at > (select coalesce(max(ingested_at), '1900-01-01') from {{ this }})
-    {% endif %}
 ),
 
 drugs as (

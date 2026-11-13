@@ -1,0 +1,8 @@
+FROM apache/airflow:2.8.1-python3.11
+
+# Isolate dbt's dependencies from Airflow's SQLAlchemy/provider constraints.
+USER root
+RUN python -m venv /opt/dbt && chown -R airflow:0 /opt/dbt
+USER airflow
+COPY dbt/requirements.txt /tmp/dbt-requirements.txt
+RUN PIP_USER=false /opt/dbt/bin/pip install --no-cache-dir -r /tmp/dbt-requirements.txt

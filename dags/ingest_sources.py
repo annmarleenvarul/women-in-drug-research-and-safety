@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import requests
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from psycopg2.extras import Json
 
@@ -208,4 +209,22 @@ with DAG(
         python_callable=check_tables,
     )
 
-    [ctgov, faers] >> checks
+    dbt_command = (
+        "/opt/dbt/bin/dbt {command} --project-dir /opt/airflow/dbt "
+        "--profiles-dir /opt/airflow/dbt --target-path /opt/airflow/dbt-target "
+        "--log-path /opt/airflow/dbt-logs "
+    )
+    raw_tests = BashOperator(
+        task_id="test_raw",
+        bash_command=dbt_command.format(command="test") + "--select source:raw",
+    )
+    silver = BashOperator(
+        task_id="build_silver",
+        bash_command=dbt_command.format(command="build") + "--select path:models/silver --indirect-selection eager",
+    )
+    gold = BashOperator(
+        task_id="build_gold",
+        bash_command=dbt_command.format(command="build") + "--select path:models/gold snap_ct__studies --indirect-selection eager",
+    )
+
+    [ctgov, faers] >> checks >> raw_tests >> silver >> gold
