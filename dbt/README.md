@@ -2,9 +2,15 @@
 
 The authoritative ingestion is `dags/ingest_sources.py`, with tables defined in
 `sql/create_raw_tables.sql`. All layers live in the existing `research-db` service,
-`women_research` database. There is no Bronze layer in this pipeline.
+`women_research` database, in three medallion layers kept apart by schema:
 
-Raw tables:
+| Layer | Schema | Managed by | Contents |
+|---|---|---|---|
+| Bronze | `raw` | Airflow (Python) | API JSON stored unchanged as JSONB, keyed by ID + version |
+| Silver | `silver` | dbt | Flattened, decoded, deduplicated staging tables + trial snapshot |
+| Gold | `gold` | dbt | Star schema: 2 facts, 6 dimensions, 1 bridge |
+
+Raw (bronze) tables:
 - `raw.faers_reports(report_id, report_version, payload, batch_id, loaded_at)`
 - `raw.ctgov_studies(nct_id, source_updated_date, payload, batch_id, loaded_at)`
 
@@ -16,7 +22,8 @@ aliases of Raw `loaded_at`; they do not require another Raw column.
 Airflow runs these gates with the default `all_success` trigger rule:
 
 1. Both API ingestion tasks.
-2. Existing `check_tables` minimum distinct-ID counts (1,000 per source).
+2. `check_tables`: every record fetched in this run is present in Raw, and no Raw row
+   has a null key or an empty payload.
 3. `dbt test --select source:raw`: source keys, required fields and payload consistency.
 4. `dbt build --select path:models/silver --indirect-selection eager`.
 5. `dbt build --select path:models/gold snap_ct__studies --indirect-selection eager`.
@@ -50,8 +57,10 @@ docker compose exec airflow-scheduler airflow dags trigger ingest_sources
 ```
 
 Open Airflow at http://localhost:8085 (or AIRFLOW_WEB_PORT from .env). Monitor
-`ingest_sources` and confirm every gate succeeds. The schedule remains manual and each
-API task still requests exactly 1,000 records, without pagination or date windows.
+`ingest_sources` and confirm every gate succeeds. The schedule is manual; the trigger form
+takes `ctgov_updated_since`, `faers_received_from`, `faers_received_to` and `record_limit`
+(1-1000, one API page per source). Both queries are date-sorted, so the same parameters
+fetch the same records and a rerun inserts nothing new.
 
 Expected result: all six tasks succeed: `ingest_ctgov`, `ingest_faers`,
 `check_tables`, `test_raw`, `build_silver`, and `build_gold`. `airflow-init`

@@ -1,0 +1,15 @@
+version: 2
+
+# Evidence for extra-credit option B (semi-structured data integration).
+# Write-up: docs/semi_structured_integration.md. Results: docs/results/semi_structured.md.
+analyses:
+  - name: s1_field_coverage
+    description: Share of raw JSON documents containing each path the silver models read (paths listed in macro semi_structured_paths).
+  - name: s2_array_fanout
+    description: Size of the nested arrays per document and how many gold fact rows one document produces.
+  - name: s3_drug_name_resolution
+    description: Which of the three possible nested fields supplied each FAERS suspect drug's ingredient name.
+  - name: s4_json_types
+    description: JSON value types and example values for fields that silver casts or decodes (string-encoded numbers, partial dates, free-text ages).
+  - name: s5_storage_and_unused_keys
+    description: Table size per medallion layer, average stored payload size, and top-level JSON keys kept in bronze but not used by any model.
