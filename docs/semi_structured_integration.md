@@ -78,7 +78,7 @@ run on the same PostgreSQL engine and feed the same gold star schema; the differ
 | Aspect | JSONB bronze + dbt flattening (ours) | Conventional tables at ingestion |
 |---|---|---|
 | When the schema is applied | On read, in version-controlled, tested dbt SQL | On write, in Python ingestion code |
-| New question needs a field we did not extract | Already stored: 26 top-level keys are kept but unused (S5), e.g. `seriousnessdisabling` (911 of 2,000 reports) and `seriousnesscongenitalanomali` (900), both relevant to Q5. Add a column in dbt and rebuild | Change the DDL, change the parser, **re-call the API** for history. Older FAERS versions may no longer be served |
+| New question needs a field we did not extract | Already stored: 26 top-level keys are kept but unused (S5), e.g. `seriousnessdisabling` (911 of 2,000 reports) and `seriousnesscongenitalanomali` (900) for Q5, or `occurcountry` (1,988 reports) and trial `contactsLocationsModule` (1,966 trials) for a future geography dimension. Add a column in dbt and rebuild | Change the DDL, change the parser, **re-call the API** for history. Older FAERS versions may no longer be served |
 | Fixing a parsing bug | Fix the model and `dbt build`; raw data is untouched | Data was lost or mis-parsed at load; needs re-ingestion |
 | API adds or renames a field | Load still succeeds; the drift test warns; fix in SQL | Insert fails (strict parser), or the field is silently dropped (lenient parser) |
 | Ingestion code | Small: key + version + whole document | Large: nested loops, type casts, fallbacks and decoding in Python, harder to test |

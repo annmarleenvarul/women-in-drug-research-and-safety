@@ -60,8 +60,8 @@ models:
       fact_adverse_event:
         +indexes:
           - {columns: ['ae_key'], unique: true}
-          - {columns: ['report_id']}        # the delete+insert of the incremental load
-          - {columns: ['ingested_at']}      # the incremental watermark read
+          - {columns: ['report_id']}        # COUNT(DISTINCT report_id) in Q3-Q5
+          - {columns: ['ingested_at']}      # tracing rows back to a raw load batch
           - {columns: ['drug_key']}
           - {columns: ['reaction_key']}
           - {columns: ['patient_profile_key']}

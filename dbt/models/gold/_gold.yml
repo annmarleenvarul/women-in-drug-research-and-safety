@@ -5,7 +5,8 @@ models:
   - name: fact_adverse_event
     description: >
       **Grain: one suspect drug x one reported reaction within one FAERS adverse event report.**
-      Incremental model (delete+insert by report_id). Report-level measures (is_serious etc.)
+      Rebuilt from silver on every run, so corrected or withdrawn report versions never leave
+      stale rows. Report-level measures (is_serious etc.)
       repeat on every row of a report, so count DISTINCT report_id when measuring reports.
     columns:
       - name: ae_key
@@ -55,7 +56,7 @@ models:
       - name: is_life_threatening
         description: Outcome was life-threatening.
       - name: ingested_at
-        description: Bronze ingestion time of the report version loaded (incremental watermark).
+        description: Raw (bronze) load time of the report version used (lineage back to the batch).
 
   - name: fact_trial_drug
     description: >
