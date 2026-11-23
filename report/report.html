@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Women in Drug Research &amp; Safety: Project 2 report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Mulish:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --wine: #8c1d4e;
+    --rose: #c2577f;
+    --rose-soft: #d98aa8;
+    --tint: #fbeef3;
+    --tint-2: #f7e1ea;
+    --line: #efd3de;
+    --ink: #222;
+    --muted: #666;
+    --todo: #fff3a8;
+  }
+  @page {
+    size: A4;
+    margin: 13mm 15mm 14mm 15mm;
+    @top-center {
+      content: ""; width: 100%;
+      background: linear-gradient(90deg, #8c1d4e, #c2577f 60%, #d98aa8) center 7mm / 100% 1.6mm no-repeat;
+    }
+    @bottom-left {
+      content: "Women in Drug Research & Safety \00B7  Data Engineering Project 2";
+      font: 7.5pt "Mulish", "Segoe UI", sans-serif; color: #999;
+    }
+    @bottom-right {
+      content: counter(page) " / " counter(pages);
+      font: 600 7.5pt "Mulish", "Segoe UI", sans-serif; color: var(--wine);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0; background: #fff; color: var(--ink);
+    font: 11pt/1.38 "Mulish", "Segoe UI", sans-serif;
+  }
+  main { max-width: 178mm; margin: 0 auto; }
+  @media screen {
+    body { background: #f3f0f1; padding: 24px 0; }
+    main { background: #fff; padding: 15mm 16mm; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+  }
+
+  /* ---------- type ---------- */
+  .kicker, .label, th {
+    font-family: "Mulish", "Segoe UI", sans-serif; text-transform: uppercase;
+    letter-spacing: .16em; font-weight: 500;
+  }
+  .kicker { font-size: 7.5pt; color: var(--rose); margin: 2mm 0 1mm; }
+  h1 {
+    font: 600 26pt/1.12 "Lexend", "Segoe UI", sans-serif; color: var(--wine);
+    margin: 0 0 1mm;
+  }
+  .subtitle { font: italic 12pt "Mulish", "Segoe UI", sans-serif; color: #555; margin: 0 0 3mm; }
+  .team {
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 2mm 0; font-size: 9.5pt; margin-bottom: 4mm;
+  }
+  .team .label { color: var(--wine); margin-right: 3mm; font-size: 7.5pt; }
+  .team a { color: var(--wine); }
+  h2 {
+    font: 600 15pt/1.2 "Lexend", "Segoe UI", sans-serif; color: var(--wine);
+    margin: 4mm 0 2mm; padding-bottom: 1.2mm; border-bottom: 1px solid var(--line);
+    break-after: avoid;
+  }
+  h2 .num { font: 600 9pt "Mulish", "Segoe UI", sans-serif; color: var(--rose); margin-right: 2.5mm; }
+  h3 { font: 500 11pt "Lexend", "Segoe UI", sans-serif; color: var(--wine); margin: 3mm 0 1.2mm; break-after: avoid; }
+  .label { font-size: 7pt; color: var(--rose); display: block; margin-bottom: 1mm; }
+  p { margin: 0 0 2mm; text-align: justify; hyphens: auto; }
+  a { color: var(--wine); }
+  code, .mono, pre { font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+  code, .mono { font: 8.8pt "JetBrains Mono", monospace; color: #5a1533; }
+  .small { font-size: 9pt; color: var(--muted); }
+  .page-break { break-before: page; }
+  .todo { background: var(--todo); padding: 0 1mm; border-radius: 1mm; }
+
+  /* ---------- callout / cards ---------- */
+  .callout {
+    background: var(--tint); border-left: 1.2mm solid var(--wine); border-radius: 1.5mm;
+    padding: 3mm 4mm; margin: 2mm 0 3mm; break-inside: avoid;
+  }
+  .callout p { font: 500 12pt/1.4 "Mulish", "Segoe UI", sans-serif; margin: 0; }
+  .grid { display: grid; gap: 2.5mm; margin: 2mm 0 3mm; }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  .g5 { grid-template-columns: repeat(5, 1fr); }
+  .card {
+    border: 1px solid var(--line); border-top: 0.9mm solid var(--rose);
+    border-radius: 1.5mm; padding: 2.5mm 3mm; break-inside: avoid; font-size: 9pt; line-height: 1.35;
+  }
+  .card b { color: var(--wine); }
+  .card.fill { background: var(--tint); border-top: 0; }
+  .stat { white-space: nowrap; font: 600 16pt/1.1 "Lexend", "Segoe UI", sans-serif; color: var(--wine); display: block; margin: .5mm 0 1mm; }
+
+  /* ---------- tables ---------- */
+  table { width: 100%; border-collapse: collapse; margin: 1.5mm 0 2.5mm; font-size: 8.6pt; line-height: 1.28; }
+  tr { break-inside: avoid; }
+  th {
+    font-size: 6.8pt; color: var(--wine); text-align: left; padding: 1.6mm 2mm;
+    background: var(--tint); border-bottom: 1.5px solid var(--wine);
+  }
+  td { padding: 1.1mm 2mm; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  td:first-child { font-weight: 500; }
+  .pill {
+    display: inline-block; font: 600 7pt "Mulish", "Segoe UI", sans-serif; letter-spacing: .05em;
+    padding: .3mm 1.8mm; border-radius: 5mm; background: var(--tint-2); color: var(--wine); white-space: nowrap;
+  }
+  .pill.dark { background: var(--wine); color: #fff; }
+
+  /* ---------- figures ---------- */
+  figure { margin: 2mm 0 3mm; break-inside: avoid; }
+  figure img { width: 100%; border: 1px solid var(--line); border-radius: 1.5mm; display: block; }
+  figcaption { font-size: 8pt; color: var(--muted); margin-top: 1mm; }
+  .diagram { border: 1px solid var(--line); border-radius: 2mm; padding: 2mm; }
+  .diagram svg { width: 100%; height: auto; display: block; }
+  pre {
+    font: 7.8pt/1.38 "JetBrains Mono", monospace; background: #faf6f8; border: 1px solid var(--line);
+    border-radius: 1.5mm; padding: 2mm 3mm; margin: 1.5mm 0 3mm; white-space: pre; overflow: hidden; break-inside: avoid;
+  }
+  pre .c { color: #a07088; }
+  pre .k { color: var(--wine); font-weight: 500; }
+  ul.tight { margin: 0 0 2mm; padding-left: 5mm; }
+  ul.tight li { margin-bottom: .8mm; }
+  .refs { font-size: 9pt; }
+  .refs li { margin-bottom: 1.2mm; }
+  /* no programming ligatures (-> would render as an arrow) */
+  code, .mono, pre, pre span { font-variant-ligatures: none !important; font-feature-settings: "calt" 0, "liga" 0 !important; }
+</style>
+</head>
+<body>
+<main>
+
+<!-- ======================= PAGE 1 ======================= -->
+<div class="kicker">Data Engineering Project 2 &middot; Data warehouse implementation and ETL pipelines</div>
+<h1>Women in Drug Research &amp; Safety</h1>
+<p class="subtitle">Clinical trial representation vs. post-market drug safety reports</p>
+<div class="team">
+  <span class="label">Team</span>Anett Sitsi &middot; Ann Marleen Varul &middot; Anne-Mai Melles &middot; Beatrice Hellrand &middot; Oskar Telgmaa
+  <br><span class="label">Repo</span><a href="https://github.com/annmarleenvarul/women-in-drug-research-and-safety">github.com/annmarleenvarul/women-in-drug-research-and-safety</a>
+</div>
+
+<div class="callout"><span class="label">Objective (unchanged from Project 1)</span>
+  <p>Compare how women are represented in clinical research with how they appear in post-market drug safety reports, to flag drugs and conditions where the two diverge.</p>
+</div>
+
+<p>Project 2 implements the Project 1 design as a running pipeline. An <b>Airflow</b> DAG pulls two JSON APIs (openFDA FAERS and ClinicalTrials.gov v2) into a <b>PostgreSQL 16</b> warehouse. <b>dbt</b> then builds silver staging tables and the gold star schema (2 facts, 6 dimensions, 1 bridge), with tests between every step. Everything runs in Docker Compose. The repository holds all code, setup steps and full results; this report explains the design and links to them.</p>
+
+<h2><span class="num">01</span>Changes since Project 1</h2>
+<table>
+  <tr><th style="width:17%">Area</th><th style="width:30%">Project 1 design</th><th style="width:30%">Project 2 implementation</th><th>Reason</th></tr>
+  <tr><td>Drug matching</td><td>Link FAERS and trials via RxNorm ingredient codes (RxCUI)</td><td>Match on a normalised ingredient name (<code>normalize_drug_name</code> macro); RxCUI kept as an attribute</td><td>ClinicalTrials.gov has no RxCUIs, only free-text names</td></tr>
+  <tr><td>Medallion layers</td><td>Raw &rarr; staging &rarr; warehouse</td><td>Schemas <code>raw</code> (bronze), <code>silver</code>, <code>gold</code> in one database</td><td>Assignment's medallion structure; <code>raw</code> kept as the bronze name</td></tr>
+  <tr><td>Ingestion</td><td>Trials daily, FAERS quarterly bulk files</td><td>One manual, parameterised DAG for both APIs (date windows, record limit)</td><td>Reproducible, testable runs within API page limits</td></tr>
+  <tr><td>Reporting</td><td>Superset dashboards, Streamlit app</td><td>Not built; Q1&ndash;Q5 answered by dbt analyses, results in the README</td><td>Outside the Project 2 scope</td></tr>
+</table>
+<p class="small">Unchanged: business questions Q1&ndash;Q5, KPIs, fact grains and SCD types (<code>dim_trial</code> Type 2 is implemented as the dbt snapshot <code>snap_ct__studies</code>).</p>
+
+<h2><span class="num">02</span>Architecture</h2>
+<div class="diagram">
+<svg viewBox="0 0 760 262" xmlns="http://www.w3.org/2000/svg" font-family="Mulish, 'Segoe UI', sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#b5859b"/>
+    </marker>
+  </defs>
+  <style>
+    .bx { fill:#fff; stroke:#e7c4d2; stroke-width:1.2; }
+    .bx.hi { fill:#fbeef3; stroke:#c2577f; }
+    .bx.stop { fill:#f7dbe6; stroke:#8c1d4e; stroke-width:1.5; }
+    .t { font-family:Lexend, 'Segoe UI', sans-serif; font-size:12.5px; font-weight:500; fill:#8c1d4e; text-anchor:middle; }
+    .s { font-size:10.5px; fill:#444; text-anchor:middle; }
+    .m { font-family:'JetBrains Mono', monospace; font-size:9.5px; fill:#9b4d6e; text-anchor:middle; }
+    .ln { stroke:#b5859b; stroke-width:1.5; fill:none; marker-end:url(#ar); }
+    .lab { font-family:Mulish, 'Segoe UI', sans-serif; font-weight:600; font-size:9.5px; fill:#8c1d4e; }
+  </style>
+  <!-- row 1 -->
+  <rect class="bx" x="8" y="8" width="210" height="64" rx="8"/>
+  <text class="t" x="113" y="30">Sources (JSON REST APIs)</text>
+  <text class="s" x="113" y="47">openFDA FAERS adverse events</text>
+  <text class="s" x="113" y="62">ClinicalTrials.gov API v2</text>
+
+  <rect class="bx" x="275" y="8" width="210" height="64" rx="8"/>
+  <text class="t" x="380" y="30">Ingestion (Airflow, Python)</text>
+  <text class="m" x="380" y="47">ingest_faers · ingest_ctgov</text>
+  <text class="s" x="380" y="62">params: date window, record_limit</text>
+
+  <rect class="bx" x="542" y="8" width="210" height="64" rx="8"/>
+  <text class="t" x="647" y="30">Bronze · schema raw</text>
+  <text class="s" x="647" y="47">whole record as JSONB</text>
+  <text class="s" x="647" y="62">PK id + version · ON CONFLICT skip</text>
+
+  <!-- row 2 -->
+  <rect class="bx hi" x="542" y="98" width="210" height="64" rx="8"/>
+  <text class="t" x="647" y="120">Quality gates</text>
+  <text class="m" x="647" y="137">check_tables (Python)</text>
+  <text class="m" x="647" y="152">test_raw (dbt source tests)</text>
+
+  <rect class="bx" x="275" y="98" width="210" height="64" rx="8"/>
+  <text class="t" x="380" y="120">Silver · schema silver (dbt)</text>
+  <text class="s" x="380" y="137">flatten JSON, decode, latest version</text>
+  <text class="s" x="380" y="152">6 staging tables + SCD2 snapshot</text>
+
+  <rect class="bx" x="8" y="98" width="210" height="64" rx="8"/>
+  <text class="t" x="113" y="120">Gold · schema gold (dbt)</text>
+  <text class="s" x="113" y="137">star schema, indexed</text>
+  <text class="s" x="113" y="152">2 facts · 6 dimensions · 1 bridge</text>
+
+  <!-- row 3 -->
+  <rect class="bx" x="8" y="188" width="210" height="64" rx="8"/>
+  <text class="t" x="113" y="210">Analyses (dbt)</text>
+  <text class="s" x="113" y="227">Q1–Q5 business queries</text>
+  <text class="s" x="113" y="242">results in README / docs/results</text>
+
+  <rect class="bx stop" x="542" y="188" width="210" height="64" rx="8"/>
+  <text class="t" x="647" y="210">Run stopped</text>
+  <text class="s" x="647" y="227">downstream tasks not run</text>
+  <text class="s" x="647" y="242">previous silver/gold stay live</text>
+
+  <rect class="bx" x="275" y="188" width="210" height="64" rx="8" style="stroke-dasharray:4 3"/>
+  <text class="t" x="380" y="210">Docker Compose</text>
+  <text class="s" x="380" y="227">research-db · airflow-db · pgAdmin</text>
+  <text class="s" x="380" y="242">Airflow webserver + scheduler (dbt venv)</text>
+
+  <!-- arrows -->
+  <path class="ln" d="M218,40 L273,40"/>
+  <path class="ln" d="M485,40 L540,40"/>
+  <path class="ln" d="M647,72 L647,96"/>
+  <path class="ln" d="M542,130 L487,130"/>
+  <text class="lab" x="498" y="124">pass</text>
+  <path class="ln" d="M275,130 L220,130"/>
+  <text class="lab" x="226" y="124">tests pass</text>
+  <path class="ln" d="M113,162 L113,186"/>
+  <path class="ln" d="M647,162 L647,186"/>
+  <text class="lab" x="653" y="179">fail</text>
+</svg>
+</div>
+<p class="small" style="margin-top:1.5mm">Every arrow is an Airflow task dependency (<code>[ingest_ctgov, ingest_faers] &gt;&gt; check_tables &gt;&gt; test_raw &gt;&gt; build_silver &gt;&gt; build_gold</code>). A failure at any gate stops the run, so gold is only rebuilt from data that passed every test. dbt runs from its own virtual environment inside the Airflow image (<a href="../Dockerfile.airflow"><code>Dockerfile.airflow</code></a>), so its dependencies cannot clash with Airflow's.</p>
+
+<!-- ======================= PAGE 2 ======================= -->
+<h2><span class="num">03</span>Database engine: PostgreSQL 16</h2>
+<p>All three layers live as schemas in one PostgreSQL database (<code>research-db</code>); Airflow's metadata has its own container. We chose PostgreSQL by matching our workload against what each engine is good at:</p>
+<table>
+  <tr><th style="width:15%">Factor</th><th style="width:40%">Our workload</th><th>Consequence for the engine</th></tr>
+  <tr><td>Data shape</td><td>Nested, versioned JSON from two APIs</td><td>Native <code>JSONB</code> and SQL/JSON paths let bronze keep documents and dbt flatten them in the same engine, without a separate document store</td></tr>
+  <tr><td>Volume</td><td>About 60 MB after two runs (43 MB raw JSON, 11 MB gold); 19,429 adverse-event fact rows</td><td>Fits one node in memory; no distributed or columnar storage needed</td></tr>
+  <tr><td>Updates</td><td>Idempotent inserts by primary key; SCD Type 2 snapshot closes rows with <code>UPDATE</code>; silver/gold rebuilt transactionally each run</td><td>Row-level, transactional DML is cheap in a row store</td></tr>
+  <tr><td>Queries</td><td>Star joins and grouped aggregates over a few columns (Q1&ndash;Q5)</td><td>B-tree indexes on surrogate and foreign keys; sub-second at this size</td></tr>
+  <tr><td>Deployment</td><td>Airflow tasks, dbt and pgAdmin connect concurrently from separate containers</td><td>Needs a client&ndash;server database; <code>dbt-postgres</code> is the reference adapter</td></tr>
+</table>
+<p><b>Compared with DuckDB / ClickHouse.</b> A columnar engine reads only the columns a query touches and runs vectorised over them, an advantage for full scans such as Q5 that grows with volume. Here its costs fall on the operations we perform most. DuckDB is an embedded single-writer file, so separate Airflow tasks and clients cannot share it like a server. ClickHouse runs updates as asynchronous mutations, which complicates the SCD Type 2 snapshot, and would add a second service and SQL dialect. The trade-off we accept is slower scans if the full FAERS history (tens of millions of reports) were loaded; pre-aggregated gold tables or a DuckDB gold layer reading from PostgreSQL would then be the next step. Details: <a href="../docs/database_engine_choice.md"><code>docs/database_engine_choice.md</code></a>.</p>
+
+<h2><span class="num">04</span>Pipeline: Airflow DAG <code style="font-size:11pt">ingest_sources</code></h2>
+<figure>
+  <img src="../images/airflow_graph.png" alt="Airflow graph view: ingest_faers and ingest_ctgov feed check_tables, then test_raw, build_silver and build_gold; all tasks succeeded">
+  <figcaption>Graph view of a successful run (<a href="../dags/ingest_sources.py"><code>dags/ingest_sources.py</code></a>). Manual schedule, one active run, 2 retries per task.</figcaption>
+</figure>
+<div class="grid g3">
+  <div class="card"><span class="label">Parameterisation</span>
+    <b>ctgov_updated_since</b>, <b>faers_received_from</b> / <b>_to</b> (date pickers) and <b>record_limit</b> (1&ndash;1000). They become API filters, for example <code>receivedate:[20250101 TO 20250331]</code>, and both queries are sorted by date. The run fails early if from &gt; to.</div>
+  <div class="card"><span class="label">Data-quality checks</span>
+    <b>check_tables</b> confirms every record fetched in this run is in raw (keys passed via XCom) and that no raw row has a null key or empty payload. <b>test_raw</b> runs dbt source tests: uniqueness, not-null, IDs consistent with the JSON, and schema drift.</div>
+  <div class="card"><span class="label">Idempotency</span>
+    Raw primary keys are (id, version), with <code>ON CONFLICT DO NOTHING</code>. A new document version becomes a new row; an identical one is skipped. Silver and gold are rebuilt from raw on every run, so they cannot accumulate duplicates.</div>
+</div>
+<h3>Verification runs</h3>
+<table>
+  <tr><th style="width:24%">Run</th><th style="width:34%">Parameters</th><th>Result</th></tr>
+  <tr><td>A: first parameterised load</td><td>defaults (CT.gov since 2025-01-01, FAERS 2025-Q1, limit 1000)</td><td>All 6 tasks green; ~1,000 new rows per source; fetched = found, 0 bad rows</td></tr>
+  <tr><td>B: rerun, same parameters</td><td>identical to A</td><td><code>Inserted: 0</code>, <code>Skipped: 1000</code> for both sources; all layer row counts identical to A; 0 duplicate keys</td></tr>
+  <tr><td>C: invalid input</td><td><code>faers_received_from</code> 2025-04-01 &gt; <code>_to</code> 2025-03-31</td><td><code>ingest_faers</code> failed with a clear message; downstream <code>upstream_failed</code>; gold untouched</td></tr>
+</table>
+
+<!-- ======================= PAGE 3 ======================= -->
+<h2><span class="num">05</span>Transformations: dbt</h2>
+<table>
+  <tr><th style="width:11%">Layer</th><th style="width:44%">Models</th><th style="width:17%">Materialisation</th><th>Role</th></tr>
+  <tr><td>Source</td><td><code>raw.faers_reports</code>, <code>raw.ctgov_studies</code> (<code>_sources.yml</code>)</td><td>declared sources</td><td>Source tests run before anything is rebuilt</td></tr>
+  <tr><td>Silver</td><td><code>base_faers__latest_reports</code>, <code>base_ct__latest_studies</code></td><td>ephemeral</td><td>Latest version of each document (window function)</td></tr>
+  <tr><td></td><td><code>stg_faers__reports</code>, <code>__suspect_drugs</code>, <code>__reactions</code>; <code>stg_ct__studies</code>, <code>__study_conditions</code>, <code>__study_drugs</code></td><td>table</td><td>One table per grain: JSON flattened, codes decoded, names normalised</td></tr>
+  <tr><td></td><td><code>snap_ct__studies</code></td><td>snapshot</td><td>SCD Type 2 trial history</td></tr>
+  <tr><td>Gold</td><td><code>fact_adverse_event</code>, <code>fact_trial_drug</code>, <code>dim_trial</code>, <code>dim_drug</code>, <code>dim_condition</code>, <code>dim_reaction</code>, <code>dim_patient_profile</code>, <code>dim_date</code>, <code>bridge_trial_condition</code></td><td>table + indexes</td><td>Star schema with deterministic hash surrogate keys</td></tr>
+</table>
+<p>All dependencies are expressed with <code>ref()</code> and <code>source()</code>, so dbt derives the build order. The lineage graph and the dbt docs screenshot are in the <a href="../README.md#dbt-project">README</a>. Grains: <b>fact_adverse_event</b> has one row per suspect drug &times; reaction within the latest version of a FAERS report; <b>fact_trial_drug</b> has one row per drug &times; trial.</p>
+
+<h3>Representative transformation: one FAERS document &rarr; fact rows</h3>
+<pre><span class="c">-- stg_faers__suspect_drugs.sql (simplified): explode the nested drug array, keep suspects only</span>
+<span class="k">select</span> r.payload -&gt;&gt; 'safetyreportid' <span class="k">as</span> report_id,
+       {{ normalize_drug_name("coalesce(
+           drug -&gt; 'openfda' -&gt; 'generic_name' -&gt;&gt; 0,           <span class="c">-- 1st: openFDA harmonised name</span>
+           drug -&gt; 'activesubstance' -&gt;&gt; 'activesubstancename', <span class="c">-- 2nd: active substance</span>
+           drug -&gt;&gt; 'medicinalproduct')") }} <span class="k">as</span> ingredient_name <span class="c">-- 3rd: free-text product</span>
+<span class="k">from</span> {{ ref('base_faers__latest_reports') }} <span class="k">as</span> r
+<span class="k">cross join lateral</span> jsonb_array_elements(
+       coalesce(r.payload -&gt; 'patient' -&gt; 'drug', '[]')) <span class="k">as</span> drug
+<span class="k">where</span> drug -&gt;&gt; 'drugcharacterization' = '1'                  <span class="c">-- 1 = suspect drug</span></pre>
+<p>A report with 2 suspect drugs and 3 reactions becomes 1 + 2 + 3 silver rows and 2 &times; 3 = 6 rows in <code>fact_adverse_event</code>, keyed to <code>dim_drug</code>, <code>dim_reaction</code>, <code>dim_patient_profile</code> and <code>dim_date</code>.</p>
+
+<h3>Tests and documentation</h3>
+<div class="grid g2">
+  <div class="card"><span class="label">Generic tests (YAML)</span>
+    <code>unique</code> and <code>not_null</code> on every key, <code>relationships</code> from every fact foreign key to its dimension, <code>accepted_values</code> on decoded codes, and a custom <code>unique_combination</code> on the raw (id, version) keys.</div>
+  <div class="card"><span class="label">Singular tests (<code>dbt/tests/</code>)</span>
+    Raw IDs match the JSON; min age &le; max age; one current version per trial; no overlapping SCD2 periods; schema drift. <b>Docs:</b> every model and column is described in <a href="../dbt/models/silver/_silver.yml"><code>_silver.yml</code></a> / <a href="../dbt/models/gold/_gold.yml"><code>_gold.yml</code></a>.</div>
+</div>
+
+<h2><span class="num">06</span>Results: business questions</h2>
+<p class="small" style="margin-bottom:1.5mm">From 1,997 trials and 2,000 FAERS reports (runs of 23 Nov 2026). SQL in <a href="../dbt/analyses/"><code>dbt/analyses/</code></a>; full tables in the README and <a href="../docs/results/queries.md"><code>docs/results/queries.md</code></a>.</p>
+<div class="grid g5">
+  <div class="card"><span class="label">Q1 · KPI 1</span><span class="stat">96 %</span>of trials open to women; phase 1 has most men-only (7.8 %)</div>
+  <div class="card"><span class="label">Q2</span><span class="stat">77&ndash;90 %</span>open to women in healthy-volunteer trials, below most diseases</div>
+  <div class="card"><span class="label">Q3 · KPI 2</span><span class="stat">73.9 %</span>female share for ambrisentan (234 reports)</div>
+  <div class="card"><span class="label">Q4</span><span class="stat">+3.0 pp</span>pain in women's vs men's reports; headache +2.7 pp</div>
+  <div class="card"><span class="label">Q5 · KPI 3</span><span class="stat">45 / 64 %</span>serious at 65+, women / men; women report more, less often serious</div>
+</div>
+<p class="small">FAERS has no denominator (it shows reporting patterns, not incidence), and trial eligibility shows who <i>could</i> enrol, not who did. The figures come from a 2,000-report sample and illustrate the pipeline; they are not population estimates.</p>
+
+<!-- ======================= PAGE 4 ======================= -->
+<h2><span class="num">07</span>Extra credit B: semi-structured data integration</h2>
+<p><b>Approach.</b> Both sources are nested, versioned JSON. The DAG extracts only each record's ID and version, which form the idempotent primary key, and stores the <b>whole record unchanged as <code>JSONB</code></b>. All structural work happens in dbt silver. The profiling evidence below comes from five analyses in <a href="../dbt/analyses/semi_structured/"><code>dbt/analyses/semi_structured/</code></a>; results are in <a href="../docs/results/semi_structured.md"><code>docs/results/semi_structured.md</code></a>.</p>
+<table>
+  <tr><th style="width:21%">Structure</th><th style="width:40%">Evidence from our data</th><th>Handling in silver</th></tr>
+  <tr><td>Nested objects</td><td>Paths up to 4 levels deep, e.g. <code>patient.drug[].openfda.generic_name[]</code></td><td><code>-&gt;</code>, <code>-&gt;&gt;</code>, <code>#&gt;&gt;</code>, <code>jsonb_path_query_array</code></td></tr>
+  <tr><td>Arrays &rarr; rows</td><td>1&ndash;153 drugs and 1&ndash;101 reactions per report; 1&ndash;45 conditions per trial</td><td><code>cross join lateral jsonb_array_elements</code></td></tr>
+  <tr><td>Optional fields</td><td>Patient age present in 63.8 % of reports, sex 90 %, trial maximum age 55 %</td><td><code>coalesce</code>; missing &rarr; <code>NULL</code> / <code>Unknown</code>, never a failed load</td></tr>
+  <tr><td>Same fact, different places</td><td>Drug name from openFDA in 81.2 %, active substance 8.5 %, free-text product 10.2 %</td><td>Fallback chain + <code>normalize_drug_name</code></td></tr>
+  <tr><td>Values as strings</td><td><code>"1"</code>/<code>"2"</code> codes, <code>"18 Years"</code>, dates <code>"2024-03"</code> (528) vs <code>"2024-03-15"</code> (1,460)</td><td>Decoding macros (<code>age_helpers</code>, <code>date_helpers</code>)</td></tr>
+  <tr><td>Versions and drift</td><td>Follow-up report versions; APIs outside our control</td><td>Latest-version models + snapshot; warn-level drift test on the 29 paths the models use</td></tr>
+</table>
+<div class="grid g4">
+  <div class="card fill"><span class="label">Fan-out</span><span class="stat">19,429</span>fact rows from 2,000 documents (median 2, max 4,949)</div>
+  <div class="card fill"><span class="label">Fallbacks</span><span class="stat">18.7 %</span>of suspect drugs named only by a fallback field</div>
+  <div class="card fill"><span class="label">Kept</span><span class="stat">26 keys</span>stored but not yet used, e.g. disability outcome, country</div>
+  <div class="card fill"><span class="label">Cost</span><span class="stat">43 / 1.8 MB</span>raw JSONB vs the silver tables with the fields we use</div>
+</div>
+<h3>Compared with conventional PostgreSQL tables</h3>
+<p>The relational alternative is to define typed tables up front (<code>report</code>, <code>report_drug</code>, <code>report_reaction</code>, <code>trial</code>, &hellip;) and parse each document into them in Python at ingestion (schema-on-write). Both approaches run on the same engine and produce the same gold star schema. The difference is <i>where and when</i> the structure is interpreted.</p>
+<table>
+  <tr><th style="width:20%">Aspect</th><th style="width:40%">JSONB bronze + dbt (ours)</th><th>Typed tables at ingestion</th></tr>
+  <tr><td>New field needed</td><td>Already stored; add a column in dbt and rebuild (e.g. disability outcomes for Q5)</td><td>Change DDL and parser, re-call the API for history; old versions may be gone</td></tr>
+  <tr><td>Parsing bug</td><td>Fix SQL, rebuild; raw untouched</td><td>Mis-parsed data must be re-ingested</td></tr>
+  <tr><td>API changes a field</td><td>Load succeeds; drift test warns</td><td>Insert fails, or the field is silently dropped</td></tr>
+  <tr><td>Type safety at load</td><td>Weak: only keys are typed; enforced later by silver casts and dbt tests</td><td>Strong: typed columns, <code>NOT NULL</code>, foreign keys</td></tr>
+  <tr><td>Storage and parsing</td><td>About 23&times; larger; JSON re-parsed on each run</td><td>Compact; cheap typed scans</td></tr>
+</table>
+<p><b>Why it fits here.</b> The sources are external and versioned, the questions are still evolving and the volume is small. Whole documents make every silver and gold table rebuildable without calling the APIs again, and keep all structural logic in one tested place; type safety is recovered one layer later. At full FAERS scale, the most-used paths would be extracted into typed columns at load. MongoDB would add a second database and an extract step before dbt.<br>Write-up: <a href="../docs/semi_structured_integration.md"><code>docs/semi_structured_integration.md</code></a>.</p>
+
+<!-- ======================= PAGE 5 ======================= -->
+<h2><span class="num">08</span>Team roles and contributions</h2>
+<table>
+  <tr><th style="width:24%">Member</th><th>Role in Project 2</th><th class="n" style="width:14%">Contribution</th></tr>
+  <tr><td>Anett Sitsi</td><td>2.1 Data ingestion (Airflow)</td><td class="n">20 %</td></tr>
+  <tr><td>Beatrice Hellrand</td><td>2.2 Data storage</td><td class="n">20 %</td></tr>
+  <tr><td>Anne-Mai Melles</td><td>2.3 Transformation (dbt)</td><td class="n">20 %</td></tr>
+  <tr><td>Ann Marleen Varul</td><td>2.4 Orchestration (Airflow + dbt)</td><td class="n">20 %</td></tr>
+  <tr><td>Oskar Telgmaa</td><td>2.5 Extra credit (B: semi-structured data integration)</td><td class="n">20 %</td></tr>
+</table>
+
+<h2><span class="num">09</span>LLM disclosure</h2>
+<p>We used <b>Claude Code</b>, <b>Claude.ai</b> (Anthropic) and <b>ChatGPT</b> (OpenAI) as programming and writing assistants: for code (DAG, dbt models, analyses), debugging, documentation and this report. Team members ran every build, DAG trigger and query themselves, and reviewed all generated code and text. <b>No shareable chat links are available</b> for these sessions.</p>
+
+<h2 class="page-break"><span class="num">&mdash;</span>References</h2>
+<ol class="refs">
+  <li>U.S. Food and Drug Administration. <i>openFDA Drug Adverse Event API</i>. <a href="https://open.fda.gov/apis/drug/event/">open.fda.gov/apis/drug/event</a></li>
+  <li>U.S. National Library of Medicine. <i>ClinicalTrials.gov API v2</i>. <a href="https://clinicaltrials.gov/data-api/api">clinicaltrials.gov/data-api/api</a></li>
+  <li>PostgreSQL Global Development Group. <i>PostgreSQL 16 documentation: JSON types and functions</i>. <a href="https://www.postgresql.org/docs/16/functions-json.html">postgresql.org/docs/16/functions-json.html</a></li>
+  <li>Apache Software Foundation. <i>Apache Airflow 2.8 documentation: Params</i>. <a href="https://airflow.apache.org/docs/apache-airflow/2.8.1/core-concepts/params.html">airflow.apache.org/docs</a></li>
+  <li>dbt Labs. <i>dbt documentation: snapshots, tests, analyses</i>. <a href="https://docs.getdbt.com/">docs.getdbt.com</a></li>
+  <li>DuckDB Foundation. <i>Concurrency</i>. <a href="https://duckdb.org/docs/connect/concurrency">duckdb.org/docs/connect/concurrency</a>; ClickHouse Inc. <i>Mutations / ALTER UPDATE</i>. <a href="https://clickhouse.com/docs/en/sql-reference/statements/alter/update">clickhouse.com/docs</a></li>
+</ol>
+
+</main>
+</body>
+</html>
